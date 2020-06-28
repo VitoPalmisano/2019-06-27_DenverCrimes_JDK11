@@ -1,8 +1,10 @@
 package it.polito.tdp.crimes;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.crimes.model.Adiacenza;
 import it.polito.tdp.crimes.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -23,16 +25,16 @@ public class FXMLController {
     private URL location;
 
     @FXML
-    private ComboBox<?> boxCategoria;
+    private ComboBox<String> boxCategoria;
 
     @FXML
-    private ComboBox<?> boxAnno;
+    private ComboBox<Integer> boxAnno;
 
     @FXML
     private Button btnAnalisi;
 
     @FXML
-    private ComboBox<?> boxArco;
+    private ComboBox<Adiacenza> boxArco;
 
     @FXML
     private Button btnPercorso;
@@ -42,12 +44,50 @@ public class FXMLController {
 
     @FXML
     void doCalcolaPercorso(ActionEvent event) {
-
+    	
+    	txtResult.clear();
+    	
+    	if(boxArco==null) {
+    		txtResult.setText("Selezionare prima un arco dalla tendina");
+    		return;
+    	}
+    	
+    	List<String> cammino = model.ricorsione(boxArco.getValue());
+    	
+    	if(cammino.isEmpty()) {
+    		txtResult.setText("Non e' stato trovato nessun cammino che tocchi tutti i vertici");
+    		return;
+    	}
+    	
+    	txtResult.setText("Trovato cammino che tocca tutti i vertici:");
+    	for(String s : cammino) {
+    		txtResult.appendText("\n"+s);
+    	}
+    	
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
-
+    	
+    	txtResult.clear();
+    	
+    	if(boxCategoria.getValue()==null || boxAnno.getValue()==null) {
+    		txtResult.setText("Selezionare prima una categoria ed un anno dai menu' a tendina");
+    		return;
+    	}
+    	
+    	model.creaGrafo(boxCategoria.getValue(), boxAnno.getValue());
+    	
+    	txtResult.setText("Creato grafo con "+model.getNumVertici()+" vertici "+model.getNumArchi()+" archi");
+    	
+    	List<Adiacenza> adiacenze = model.getMax();
+    	
+    	for(Adiacenza a : adiacenze) {
+    		txtResult.appendText("\n"+a);
+    	}
+    	
+    	boxArco.getItems().clear();
+    	boxArco.getItems().addAll(adiacenze);
     }
 
     @FXML
@@ -63,5 +103,7 @@ public class FXMLController {
 
 	public void setModel(Model model) {
 		this.model = model;
+		boxCategoria.getItems().addAll(model.listCategorie());
+		boxAnno.getItems().addAll(model.listAnni());
 	}
 }
